@@ -34,7 +34,7 @@
 #include <cublas_v2.h>
 
 #elif defined(TILED_MM_ROCM)
-#include <rocblas.h>
+#include <hipblas.h>
 
 #else
 #error Either TILED_MM_CUDA or TILED_MM_ROCM must be defined!
@@ -52,11 +52,11 @@ using ComplexDoubleType = cuDoubleComplex;
 #endif
 
 #if defined(TILED_MM_ROCM)
-using HandleType = rocblas_handle;
-using StatusType = rocblas_status;
-using OperationType = rocblas_operation;
-using ComplexFloatType = rocblas_float_complex;
-using ComplexDoubleType = rocblas_double_complex;
+using HandleType = hipblasHandle_t;
+using StatusType = hipblasStatus_t;
+using OperationType = hipblasOperation_t;
+using ComplexFloatType = hipblasComplex;
+using ComplexDoubleType = hipblasDoubleComplex;
 #endif
 
 namespace operation {
@@ -67,9 +67,9 @@ constexpr auto ConjugateTranspose = CUBLAS_OP_C;
 #endif
 
 #if defined(TILED_MM_ROCM)
-constexpr auto None = rocblas_operation_none;
-constexpr auto Transpose = rocblas_operation_transpose;
-constexpr auto ConjugateTranspose = rocblas_operation_conjugate_transpose;
+constexpr auto None = HIPBLAS_OP_N;
+constexpr auto Transpose = HIPBLAS_OP_T;
+constexpr auto ConjugateTranspose = HIPBLAS_OP_C;
 #endif
 }  // namespace operation
 
@@ -79,7 +79,7 @@ constexpr auto Success = CUBLAS_STATUS_SUCCESS;
 #endif
 
 #if defined(TILED_MM_ROCM)
-constexpr auto Success = rocblas_status_success;
+constexpr auto Success = HIPBLAS_STATUS_SUCCESS;
 #endif
 
 static const char* get_string(StatusType error)
@@ -122,38 +122,32 @@ static const char* get_string(StatusType error)
 #if defined(TILED_MM_ROCM)
     switch (error)
     {
-        case rocblas_status_success:
-            return "rocblas_status_success";
+        case HIPBLAS_STATUS_SUCCESS:
+            return "HIPBLAS_STATUS_SUCCESS";
 
-        case rocblas_status_invalid_handle:
-            return "rocblas_status_invalid_handle";
+        case HIPBLAS_STATUS_NOT_INITIALIZED:
+            return "HIPBLAS_STATUS_NOT_INITIALIZED";
 
-        case rocblas_status_not_implemented:
-            return "rocblas_status_not_implemented";
+        case HIPBLAS_STATUS_ALLOC_FAILED:
+            return "HIPBLAS_STATUS_ALLOC_FAILED";
 
-        case rocblas_status_invalid_pointer:
-            return "rocblas_status_invalid_pointer";
+        case HIPBLAS_STATUS_MAPPING_ERROR:
+            return "HIPBLAS_STATUS_MAPPING_ERROR";
 
-        case rocblas_status_invalid_size:
-            return "rocblas_status_invalid_size";
+        case HIPBLAS_STATUS_EXECUTION_FAILED:
+            return "HIPBLAS_STATUS_EXECUTION_FAILED";
 
-        case rocblas_status_memory_error:
-            return "rocblas_status_memory_error";
+        case HIPBLAS_STATUS_INTERNAL_ERROR:
+            return "HIPBLAS_STATUS_INTERNAL_ERROR";
 
-        case rocblas_status_internal_error:
-            return "rocblas_status_internal_error";
+        case HIPBLAS_STATUS_NOT_SUPPORTED:
+            return "HIPBLAS_STATUS_NOT_SUPPORTED";
 
-        case rocblas_status_perf_degraded:
-            return "rocblas_status_perf_degraded";
+        case HIPBLAS_STATUS_ARCH_MISMATCH:
+            return "HIPBLAS_STATUS_ARCH_MISMATCH";
 
-        case rocblas_status_size_query_mismatch:
-            return "rocblas_status_size_query_mismatch";
-
-        case rocblas_status_size_increased:
-            return "rocblas_status_size_increased";
-
-        case rocblas_status_size_unchanged:
-            return "rocblas_status_size_unchanged";
+        case HIPBLAS_STATUS_HANDLE_IS_NULLPTR:
+            return "HIPBLAS_STATUS_HANDLE_IS_NULLPTR";
     }
 #endif
 
@@ -169,7 +163,7 @@ inline auto create(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasCreate(std::forward<ARGS>(args)...);
 #else
-  return rocblas_create_handle(std::forward<ARGS>(args)...);
+  return hipblasCreate(std::forward<ARGS>(args)...);
 #endif
 }
 
@@ -178,7 +172,7 @@ inline auto destroy(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasDestroy(std::forward<ARGS>(args)...);
 #else
-  return rocblas_destroy_handle(std::forward<ARGS>(args)...);
+  return hipblasDestroy(std::forward<ARGS>(args)...);
 #endif
 }
 
@@ -187,7 +181,7 @@ inline auto set_stream(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasSetStream(std::forward<ARGS>(args)...);
 #else
-  return rocblas_set_stream(std::forward<ARGS>(args)...);
+  return hipblasSetStream(std::forward<ARGS>(args)...);
 #endif
 }
 
@@ -196,7 +190,7 @@ inline auto sgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasSgemm(std::forward<ARGS>(args)...);
 #else
-  return rocblas_sgemm(std::forward<ARGS>(args)...);
+  return hipblasSgemm(std::forward<ARGS>(args)...);
 #endif // TILED_MM_ROCBLAS_HAS_SGEMM
 }
 
@@ -205,7 +199,7 @@ inline auto dgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasDgemm(std::forward<ARGS>(args)...);
 #else
-  return rocblas_dgemm(std::forward<ARGS>(args)...);
+  return hipblasDgemm(std::forward<ARGS>(args)...);
 #endif // TILED_MM_CUDA
 }
 
@@ -214,7 +208,7 @@ inline auto cgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasCgemm(std::forward<ARGS>(args)...);
 #else
-  return rocblas_cgemm(std::forward<ARGS>(args)...);
+  return hipblasCgemm(std::forward<ARGS>(args)...);
 #endif // TILED_MM_CUDA
 }
 
@@ -223,7 +217,7 @@ inline auto zgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasZgemm(std::forward<ARGS>(args)...);
 #else
-  return rocblas_zgemm(std::forward<ARGS>(args)...);
+  return hipblasZgemm(std::forward<ARGS>(args)...);
 #endif // TILED_MM_CUDA
 }
 

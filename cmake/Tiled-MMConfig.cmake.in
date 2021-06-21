@@ -10,8 +10,8 @@ if(NOT TARGET Tiled-MM::Tiled-MM)
     endif()
 
     if(TILEDMM_GPU_BACKEND STREQUAL "ROCM")
-        find_package(ROCBLAS)
-        find_package(HIP)
+        find_package(hip CONFIG REQUIRED HINTS $ENV{ROCM_PATH} $ENV{ROCM_HOME} PATHS /opt/rocm PATH_SUFFIXES hip)
+        find_package(hipblas CONFIG REQUIRED HINTS $ENV{ROCM_PATH} $ENV{ROCM_HOME} PATHS /opt/rocm PATH_SUFFIXES hipblas)
     endif()
 
     include("${CMAKE_CURRENT_LIST_DIR}/Tiled-MMTargets.cmake")
