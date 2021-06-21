@@ -44,23 +44,9 @@ if(TILEDMM_GPU_BACKEND STREQUAL "CUDA")
     list(APPEND TILEDMM_DEFINITIONS TILED_MM_CUDA)
 
 elseif(TILEDMM_GPU_BACKEND STREQUAL "ROCM")
-    find_package(HIPLIBS REQUIRED)
-    find_package(ROCBLAS REQUIRED)
-    list(APPEND TILEDMM_EXTERNAL_LIBRARIES ROCBLAS::rocblas HIPLIBS::hiplibs)
-    list(APPEND TILEDMM_DEFINITIONS -D__HIP_PLATFORM_HCC__) # since we are not using the hcc compiler, we have to set up this explicitly
-    list(APPEND TILEDMM_DEFINITIONS TILED_MM_ROCM)
-    if(ROCBLAS_HAS_SGEMM)
-        list(APPEND TILEDMM_DEFINITIONS TILED_MM_ROCBLAS_HAS_SGEMM)
-    endif()
-    if(ROCBLAS_HAS_DGEMM)
-        list(APPEND TILEDMM_DEFINITIONS TILED_MM_ROCBLAS_HAS_DGEMM)
-    endif()
-    if(ROCBLAS_HAS_CGEMM)
-        list(APPEND TILEDMM_DEFINITIONS TILED_MM_ROCBLAS_HAS_CGEMM)
-    endif()
-    if(ROCBLAS_HAS_ZGEMM)
-        list(APPEND TILEDMM_DEFINITIONS TILED_MM_ROCBLAS_HAS_ZGEMM)
-    endif()
+    find_package(hip CONFIG REQUIRED HINTS $ENV{ROCM_PATH} $ENV{ROCM_HOME} PATHS /opt/rocm PATH_SUFFIXES hip)
+    find_package(rocblas CONFIG REQUIRED HINTS $ENV{ROCM_PATH} $ENV{ROCM_HOME} PATHS /opt/rocm PATH_SUFFIXES rocblas)
+    list(APPEND TILEDMM_EXTERNAL_LIBRARIES hip::host roc::rocblas)
 else()
     message(FATAL_ERROR "TILED_MM: GPU Backend must be CUDA or ROCM!")
 endif()
@@ -92,8 +78,6 @@ if(TILEDMM_WITH_INSTALL)
 
     install(FILES "${Tiled-MM_BINARY_DIR}/Tiled-MMConfig.cmake"
                   "${Tiled-MM_BINARY_DIR}/Tiled-MMConfigVersion.cmake"
-                  "${Tiled-MM_SOURCE_DIR}/cmake/FindROCBLAS.cmake"
-                  "${Tiled-MM_SOURCE_DIR}/cmake/FindHIPLIBS.cmake"
             DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Tiled-MM")
 endif()
 

@@ -165,7 +165,7 @@ static const char* get_string(StatusType error)
 // Forwarding functions of to GPU BLAS API
 // =======================================
 template <typename... ARGS>
-inline auto create(ARGS... args) -> StatusType {
+inline auto create(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasCreate(std::forward<ARGS>(args)...);
 #else
@@ -174,7 +174,7 @@ inline auto create(ARGS... args) -> StatusType {
 }
 
 template <typename... ARGS>
-inline auto destroy(ARGS... args) -> StatusType {
+inline auto destroy(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasDestroy(std::forward<ARGS>(args)...);
 #else
@@ -183,7 +183,7 @@ inline auto destroy(ARGS... args) -> StatusType {
 }
 
 template <typename... ARGS>
-inline auto set_stream(ARGS... args) -> StatusType {
+inline auto set_stream(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasSetStream(std::forward<ARGS>(args)...);
 #else
@@ -192,62 +192,38 @@ inline auto set_stream(ARGS... args) -> StatusType {
 }
 
 template <typename... ARGS>
-inline auto sgemm(ARGS... args) -> StatusType {
+inline auto sgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasSgemm(std::forward<ARGS>(args)...);
 #else
-
-#ifdef TILED_MM_ROCBLAS_HAS_SGEMM
   return rocblas_sgemm(std::forward<ARGS>(args)...);
-#else
-  throw std::runtime_error("TiledMM: rocblas does not support sgemm!");
 #endif // TILED_MM_ROCBLAS_HAS_SGEMM
-
-#endif // TILED_MM_CUDA
 }
 
 template <typename... ARGS>
-inline auto dgemm(ARGS... args) -> StatusType {
+inline auto dgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasDgemm(std::forward<ARGS>(args)...);
 #else
-
-#ifdef TILED_MM_ROCBLAS_HAS_DGEMM
   return rocblas_dgemm(std::forward<ARGS>(args)...);
-#else
-  throw std::runtime_error("TiledMM: rocblas does not support dgemm!");
-#endif // TILED_MM_ROCBLAS_HAS_DGEMM
-
 #endif // TILED_MM_CUDA
 }
 
 template <typename... ARGS>
-inline auto cgemm(ARGS... args) -> StatusType {
+inline auto cgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasCgemm(std::forward<ARGS>(args)...);
 #else
-
-#ifdef TILED_MM_ROCBLAS_HAS_CGEMM
   return rocblas_cgemm(std::forward<ARGS>(args)...);
-#else
-  throw std::runtime_error("TiledMM: rocblas does not support cgemm!");
-#endif // TILED_MM_ROCBLAS_HAS_CGEMM
-
 #endif // TILED_MM_CUDA
 }
 
 template <typename... ARGS>
-inline auto zgemm(ARGS... args) -> StatusType {
+inline auto zgemm(ARGS&&... args) -> StatusType {
 #if defined(TILED_MM_CUDA)
   return cublasZgemm(std::forward<ARGS>(args)...);
 #else
-
-#ifdef TILED_MM_ROCBLAS_HAS_ZGEMM
   return rocblas_zgemm(std::forward<ARGS>(args)...);
-#else
-  throw std::runtime_error("TiledMM: rocblas does not support zgemm!");
-#endif // TILED_MM_ROCBLAS_HAS_ZGEMM
-
 #endif // TILED_MM_CUDA
 }
 
